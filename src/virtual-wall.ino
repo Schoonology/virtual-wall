@@ -1,34 +1,16 @@
-/*
- * Project virtual-wall
- * Description:
- * Author:
- * Date:
- */
-bool enabled_pins[] = {0, 0, 0, 0};
-int pins[] = {D0, D1, D2, D3};
+#include "Quantum.h"
 
-int enable(String args) {
-  int pin = args.toInt();
+bool enabled_pins[] = {0, 0};
+int pins[] = {D0, D1};
+Quantum wall(perform);
 
-  if (pin < 0 || pin > 3) {
-    return -1;
-  }
+void perform(uint8_t command) {
+  uint8_t front = (command & 0xf0) >> 4;
+  uint8_t back = command & 0x0f;
 
-  enabled_pins[pin] = true;
+  enabled_pins[0] = (front != 0);
+  enabled_pins[1] = (back != 0);
   EEPROM.put(0, enabled_pins);
-  return 0;
-}
-
-int disable(String args) {
-  int pin = args.toInt();
-
-  if (pin < 0 || pin > 3) {
-    return -1;
-  }
-
-  enabled_pins[pin] = false;
-  EEPROM.put(0, enabled_pins);
-  return 0;
 }
 
 void setup() {
@@ -37,9 +19,8 @@ void setup() {
   pinMode(D1, OUTPUT);
   analogWriteResolution(D1, 8);
 
-  Particle.function("enable", enable);
-  Particle.function("disable", disable);
   EEPROM.get(0, enabled_pins);
+  wall.begin();
 }
 
 void loop() {
